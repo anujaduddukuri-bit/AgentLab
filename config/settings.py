@@ -4,13 +4,17 @@ Django settings for AgentLab.
 Secrets are loaded from environment variables / a local .env file.
 Never hardcode API keys in this file.
 """
+
 import os
 from pathlib import Path
 
+import dj_database_url
 from django.contrib.messages import constants as message_constants
 from dotenv import load_dotenv
 
+
 BASE_DIR = Path(__file__).resolve().parent.parent
+
 load_dotenv(BASE_DIR / ".env", override=True)
 
 
@@ -21,8 +25,21 @@ def _env_bool(name: str, default: bool = False) -> bool:
     return value.strip().lower() in {"1", "true", "yes", "on"}
 
 
-SECRET_KEY = os.getenv("DJANGO_SECRET_KEY", "dev-only-insecure-secret-key-change-me")
+# -------------------------------------------------------------------
+# Basic Django configuration
+# -------------------------------------------------------------------
+
+SECRET_KEY = os.getenv(
+    "DJANGO_SECRET_KEY",
+    "dev-only-insecure-secret-key-change-me",
+)
+
 DEBUG = _env_bool("DJANGO_DEBUG", True)
+
+
+# -------------------------------------------------------------------
+# Allowed hosts
+# -------------------------------------------------------------------
 
 ALLOWED_HOSTS = [
     "127.0.0.1",
@@ -31,9 +48,15 @@ ALLOWED_HOSTS = [
     "agent-lab-rho.vercel.app",
 ]
 
+
 CSRF_TRUSTED_ORIGINS = [
     "https://*.vercel.app",
 ]
+
+
+# -------------------------------------------------------------------
+# Installed applications
+# -------------------------------------------------------------------
 
 INSTALLED_APPS = [
     "django.contrib.admin",
@@ -45,6 +68,11 @@ INSTALLED_APPS = [
     "agent",
 ]
 
+
+# -------------------------------------------------------------------
+# Middleware
+# -------------------------------------------------------------------
+
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
@@ -55,9 +83,21 @@ MIDDLEWARE = [
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
 
+
+# -------------------------------------------------------------------
+# URLs / WSGI / ASGI
+# -------------------------------------------------------------------
+
 ROOT_URLCONF = "config.urls"
+
 WSGI_APPLICATION = "config.wsgi.application"
+
 ASGI_APPLICATION = "config.asgi.application"
+
+
+# -------------------------------------------------------------------
+# Templates
+# -------------------------------------------------------------------
 
 TEMPLATES = [
     {
@@ -76,30 +116,115 @@ TEMPLATES = [
     },
 ]
 
-DATABASES = {
-    "default": {
-        "ENGINE": "django.db.backends.sqlite3",
-        "NAME": BASE_DIR / "db.sqlite3",
-    }
-}
+
+# -------------------------------------------------------------------
+# Password validation
+# -------------------------------------------------------------------
 
 AUTH_PASSWORD_VALIDATORS = [
-    {"NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator"},
-    {"NAME": "django.contrib.auth.password_validation.MinimumLengthValidator"},
-    {"NAME": "django.contrib.auth.password_validation.CommonPasswordValidator"},
-    {"NAME": "django.contrib.auth.password_validation.NumericPasswordValidator"},
+    {
+        "NAME": (
+            "django.contrib.auth.password_validation."
+            "UserAttributeSimilarityValidator"
+        )
+    },
+    {
+        "NAME": (
+            "django.contrib.auth.password_validation."
+            "MinimumLengthValidator"
+        )
+    },
+    {
+        "NAME": (
+            "django.contrib.auth.password_validation."
+            "CommonPasswordValidator"
+        )
+    },
+    {
+        "NAME": (
+            "django.contrib.auth.password_validation."
+            "NumericPasswordValidator"
+        )
+    },
 ]
 
+
+# -------------------------------------------------------------------
+# Internationalization
+# -------------------------------------------------------------------
+
 LANGUAGE_CODE = "en-us"
+
 TIME_ZONE = "UTC"
+
 USE_I18N = True
+
 USE_TZ = True
 
+
+# -------------------------------------------------------------------
+# Static files
+# -------------------------------------------------------------------
+
 STATIC_URL = "static/"
-STATICFILES_DIRS = [BASE_DIR / "static"]
+
+STATICFILES_DIRS = [
+    BASE_DIR / "static"
+]
+
 STATIC_ROOT = BASE_DIR / "staticfiles"
 
+
+# -------------------------------------------------------------------
+# Database
+# -------------------------------------------------------------------
+#
+# Local computer:
+#     Uses SQLite (db.sqlite3)
+#
+# Vercel:
+#     Uses Prisma Postgres through STORAGE_URL.
+#
+# The Prisma integration was configured with the custom prefix:
+#     STORAGE
+#
+# Therefore Vercel creates:
+#     STORAGE_URL
+#
+# DATABASE_URL is also supported as a fallback.
+# -------------------------------------------------------------------
+
+DATABASE_URL = (
+    os.getenv("STORAGE_URL")
+    or os.getenv("DATABASE_URL")
+)
+
+if DATABASE_URL:
+    DATABASES = {
+        "default": dj_database_url.parse(
+            DATABASE_URL,
+            conn_max_age=0,
+        )
+    }
+else:
+    DATABASES = {
+        "default": {
+            "ENGINE": "django.db.backends.sqlite3",
+            "NAME": BASE_DIR / "db.sqlite3",
+        }
+    }
+
+
+# -------------------------------------------------------------------
+# Default primary key
+# -------------------------------------------------------------------
+
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+
+
+# -------------------------------------------------------------------
+# Django messages
+# -------------------------------------------------------------------
 
 MESSAGE_TAGS = {
     message_constants.DEBUG: "debug",
@@ -109,13 +234,48 @@ MESSAGE_TAGS = {
     message_constants.ERROR: "error",
 }
 
-# --- AgentLab configuration ---
-GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "").strip()
-GEMINI_MODEL = os.getenv("GEMINI_MODEL", "gemini-3.6-flash").strip() or "gemini-3.6-flash"
-SERPAPI_API_KEY = os.getenv("SERPAPI_API_KEY", "").strip()
-OPENWEATHERMAP_API_KEY = os.getenv("OPENWEATHERMAP_API_KEY", "").strip()
-CURRENCY_API_KEY = os.getenv("CURRENCY_API_KEY", "").strip()
 
-AGENT_MAX_TOOL_CALLS = int(os.getenv("AGENT_MAX_TOOL_CALLS", "8"))
-AGENT_API_TIMEOUT = int(os.getenv("AGENT_API_TIMEOUT", "12"))
-HISTORY_PAGE_SIZE = int(os.getenv("HISTORY_PAGE_SIZE", "8"))
+# -------------------------------------------------------------------
+# AgentLab configuration
+# -------------------------------------------------------------------
+
+GEMINI_API_KEY = os.getenv(
+    "GEMINI_API_KEY",
+    "",
+).strip()
+
+GEMINI_MODEL = (
+    os.getenv(
+        "GEMINI_MODEL",
+        "gemini-3.6-flash",
+    ).strip()
+    or "gemini-3.6-flash"
+)
+
+SERPAPI_API_KEY = os.getenv(
+    "SERPAPI_API_KEY",
+    "",
+).strip()
+
+OPENWEATHERMAP_API_KEY = os.getenv(
+    "OPENWEATHERMAP_API_KEY",
+    "",
+).strip()
+
+CURRENCY_API_KEY = os.getenv(
+    "CURRENCY_API_KEY",
+    "",
+).strip()
+
+
+AGENT_MAX_TOOL_CALLS = int(
+    os.getenv("AGENT_MAX_TOOL_CALLS", "8")
+)
+
+AGENT_API_TIMEOUT = int(
+    os.getenv("AGENT_API_TIMEOUT", "12")
+)
+
+HISTORY_PAGE_SIZE = int(
+    os.getenv("HISTORY_PAGE_SIZE", "8")
+)
