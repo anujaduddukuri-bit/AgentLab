@@ -192,3 +192,5 @@ The in-app guide is at `/add-a-tool/`.
 - API calls use timeouts
 - Templates escape output by default
 - No shell, no `eval()`, no arbitrary Python execution
+
+Deployed with Vercel.
