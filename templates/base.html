@@ -1,0 +1,63 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{% if page_title %}{{ page_title }} · {% endif %}AgentLab</title>
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+</head>
+<body>
+    <header class="site-header">
+        <div class="header-inner">
+            <a class="brand" href="{% url 'dashboard' %}">
+                <span class="brand-mark">Agent<span>Lab</span></span>
+                <span class="brand-tag">Teach AI to Choose the Right Tool.</span>
+            </a>
+            <nav class="nav" aria-label="Main">
+                {% for name, label in nav_items %}
+                    <a href="{% url name %}" class="{% if request.resolver_match.url_name == name %}active{% endif %}">{{ label }}</a>
+                {% endfor %}
+            </nav>
+        </div>
+    </header>
+
+    <main class="container">
+        {% if messages %}
+            <div class="messages">
+                {% for message in messages %}
+                    <div class="flash {{ message.tags }}">{{ message }}</div>
+                {% endfor %}
+            </div>
+        {% endif %}
+        {% block content %}{% endblock %}
+    </main>
+
+    <div id="agent-working" class="working-overlay" hidden>
+        <div class="working-panel">
+            <p class="working-kicker">AgentLab</p>
+            <h2>Agent is working</h2>
+            <p>Understanding your question, choosing tools, and writing the answer. Stay on this page.</p>
+            <div class="working-bar" aria-hidden="true"><span></span></div>
+            <ol class="working-steps">
+                <li>Reading the prompt</li>
+                <li>Selecting the right tool</li>
+                <li>Running tools and drafting the answer</li>
+            </ol>
+        </div>
+    </div>
+
+    <footer class="site-footer">
+        <div class="footer-inner">
+            <div>AgentLab · Django-only educational agent platform</div>
+            <div class="footer-links">
+                <a href="{% url 'learning' %}">Learning Mode</a>
+                <a href="{% url 'agent_playground' %}">Agent Playground</a>
+                <a href="{% url 'developer' %}">Developer</a>
+                <a href="{% url 'add_tool' %}">Add a Tool</a>
+            </div>
+        </div>
+    </footer>
+    <script src="{% static 'js/agentlab.js' %}"></script>
+</body>
+</html>

@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+
+{% block content %}
+<section class="page-heading">
+    <h1>Settings &amp; API Status</h1>
+    <p>Configuration status only. API keys are never displayed.</p>
+</section>
+
+<div class="tools-grid">
+    <article class="tool-card">
+        <h2>Google Gemini</h2>
+        <div class="card-copy">
+            <p>Powers tool selection and the final answer.</p>
+            <p><span class="badge {% if api_status.gemini.configured %}configured{% else %}not-configured{% endif %}">{{ api_status.gemini.label }}</span></p>
+            <p class="muted">Model: {{ model }}</p>
+        </div>
+    </article>
+    <article class="tool-card">
+        <h2>SerpAPI</h2>
+        <div class="card-copy">
+            <p>Live web search for the web_search tool.</p>
+            <p><span class="badge {% if api_status.serpapi.configured %}configured{% else %}not-configured{% endif %}">{{ api_status.serpapi.label }}</span></p>
+        </div>
+    </article>
+    <article class="tool-card">
+        <h2>OpenWeatherMap</h2>
+        <div class="card-copy">
+            <p>Current weather for the weather tool.</p>
+            <p><span class="badge {% if api_status.openweather.configured %}configured{% else %}not-configured{% endif %}">{{ api_status.openweather.label }}</span></p>
+        </div>
+    </article>
+    <article class="tool-card">
+        <h2>Currency API</h2>
+        <div class="card-copy">
+            <p>Live FX when a key is present; otherwise labelled demo rates.</p>
+            <p><span class="badge {% if api_status.currency.configured %}configured{% else %}demo{% endif %}">{{ api_status.currency.label }}</span></p>
+        </div>
+    </article>
+</div>
+
+<section class="card">
+    <h2>Agent limits</h2>
+    <p>Maximum tool calls per request: <strong>{{ max_tool_calls }}</strong></p>
+    <p class="muted">Copy <code>.env.example</code> to <code>.env</code> and add keys locally. Never commit secrets.</p>
+</section>
+{% endblock %}
